@@ -15,13 +15,13 @@ import java.util.Set;
 public class Skill {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
 
     private String skillName;
 
-    @ManyToMany(mappedBy = "skills")
+    @ManyToMany(mappedBy = "skills",cascade = CascadeType.ALL)
     private Set<Employee> employees;
 
 }

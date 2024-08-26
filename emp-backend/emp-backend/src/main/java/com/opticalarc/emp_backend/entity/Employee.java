@@ -17,7 +17,7 @@ import java.util.Set;
 public class Employee {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
 
@@ -33,11 +33,11 @@ public class Employee {
     @JoinColumn(name = "address_id", referencedColumnName = "id")
     private Address address;
 
-    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "project_id",referencedColumnName = "id", nullable = false)
     private Project project;
 
-    @ManyToMany(cascade = CascadeType.ALL)
+    @ManyToMany(cascade = CascadeType.ALL,fetch = FetchType.LAZY)
     @JoinTable(
             name = "employee_skills",
             joinColumns = @JoinColumn(name = "employee_id"),

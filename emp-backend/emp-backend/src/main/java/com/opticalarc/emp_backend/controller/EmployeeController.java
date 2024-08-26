@@ -48,7 +48,7 @@ public class EmployeeController  {
     }
 
     //delete employee
-    @DeleteMapping("{id}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse> deleteEmployee(@PathVariable("id") Long employeeId){
        employeeService.deleteEmployee(employeeId);
         return new  ResponseEntity<ApiResponse>(new ApiResponse("Employee Deleted Successfully!",true),HttpStatus.OK);

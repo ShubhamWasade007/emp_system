@@ -218,6 +218,9 @@ public class EmployeeServiceImpl implements EmployeeService {
     public void deleteEmployee(Long employeeId) {
         Employee employee = employeeRepository.findById(employeeId)
                 .orElseThrow(() -> new ResourceNotFoundException("Employee Not Found By This Id: " + employeeId));
+        for (Skill skill:employee.getSkills()){
+            skill.getEmployees().remove(employee);
+        }
         employeeRepository.deleteById(employeeId);
     }
 
@@ -228,7 +231,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         Pageable pageable = PageRequest.of(page, size, sort);
         Page<Employee> employeePage = employeeRepository.findAll(pageable);
         if(page >= employeePage.getTotalPages()){
-            throw new PageNotFoundException("Page number out of bounds. The maximum page number is " + page);
+            throw new PageNotFoundException("Page Not Found!");
         }
         return employeePage.map(employeeMapper::employeeToEmployeeDto);
    }
@@ -239,7 +242,8 @@ public class EmployeeServiceImpl implements EmployeeService {
         List<Employee> byDepartmentId = employeeRepository.findByDepartment_Id(id);
         if(byDepartmentId.isEmpty())
         {
-            throw new ResourceNotFoundException("Given department id is not found, Please provide valid department id");
+            throw new ResourceNotFoundException("Given department id is not found, Please provide valid department id or " +
+                    "In This Department Don't Have any Employee");
         }
         return byDepartmentId.stream().map(employeeMapper::employeeToEmployeeDto).collect(Collectors.toList());
     }
@@ -250,7 +254,8 @@ public class EmployeeServiceImpl implements EmployeeService {
         List<Employee> projectId = employeeRepository.findByProject_Id(id);
         if(projectId.isEmpty())
         {
-            throw new ResourceNotFoundException("Given projectId is not found, Please provide valid project id");
+            throw new ResourceNotFoundException("Given projectId is not found, Please provide valid project id or " +
+                    "In This Project No Employee Assign");
         }
         return projectId.stream().map(employeeMapper::employeeToEmployeeDto).collect(Collectors.toList());
     }

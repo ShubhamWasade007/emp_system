@@ -15,10 +15,10 @@ import java.util.List;
 public class Project {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String projectName;
 
-    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "project")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "project")
     private List<Employee> employees;
 }
