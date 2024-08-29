@@ -8,6 +8,8 @@ import com.opticalarc.emp_backend.mapper.*;
 import com.opticalarc.emp_backend.mapper.ProjectMapper;
 import com.opticalarc.emp_backend.repository.*;
 import com.opticalarc.emp_backend.service.EmployeeService;
+import jakarta.persistence.EntityManager;
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -53,9 +55,12 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Autowired
     private SkillRepository skillRepository;
 
+    @Autowired
+    private EntityManager entityManager;
+
 
     @Override
-    public List<EmployeeDto> getAllEmployees() {
+    public List<EmployeeDto> findAllActiveEmployees() {
         List<Employee> employees = employeeRepository.findAll();
         return employees.stream().map(employeeMapper::employeeToEmployeeDto)
                 .collect(Collectors.toList());
@@ -67,6 +72,15 @@ public class EmployeeServiceImpl implements EmployeeService {
             throw new ResourceNotFoundException("Already Have That Email");
         }
         Employee employee = employeeMapper.employeeDtoToEmployee(employeeDto);
+
+        if (employeeDto.getAddress() != null){
+            AddressDto addressDto = employeeDto.getAddress();
+            Address address = addressMapper.addressDtoToAddress(addressDto);
+            if (address.getId() == null){
+                address = addressRepository.save(address);
+            }
+            employee.setAddress(address);
+        }
 
         Project project = projectRepository.findByProjectName(employeeDto.getProject().getProjectName())
                 .orElseGet(() -> {
@@ -151,15 +165,16 @@ public class EmployeeServiceImpl implements EmployeeService {
         }
 
         // Update Projects
-        if (employeeDto.getProject() != null){
-            employee.setProject(projectMapper.projectDtoToProject(employeeDto.getProject()));
-        }
         if (employeeDto.getProject() != null) {
             ProjectDto projectDto = employeeDto.getProject();
             Project project = projectRepository.findByProjectName(projectDto.getProjectName())
-                    .orElseGet(() -> projectMapper.projectDtoToProject(projectDto));
+                    .orElseGet(() -> {
+                        Project project1 = projectMapper.projectDtoToProject(projectDto);
+                        return projectRepository.save(project1);
+                    });
             employee.setProject(project);
         }
+
 
         // update skill
         if (employeeDto.getSkill() != null) {
@@ -215,23 +230,40 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     @Override
-    public void deleteEmployee(Long employeeId) {
+    public void deleteEmployeeBySoftDelete(Long employeeId) {
         Employee employee = employeeRepository.findById(employeeId)
                 .orElseThrow(() -> new ResourceNotFoundException("Employee Not Found By This Id: " + employeeId));
         for (Skill skill:employee.getSkills()){
             skill.getEmployees().remove(employee);
         }
+        employee.setDeleted(true);
         employeeRepository.deleteById(employeeId);
+    }
+
+    @Override
+    public void deleteEmployeeByHardDelete(Long employeeId) {
+            Employee employee = employeeRepository.findById(employeeId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Employee Not Found By This Id: " + employeeId));
+            for (Skill skill : employee.getSkills()) {
+                skill.getEmployees().remove(employee);
+            }
+            employeeRepository.hardDeleteById(employeeId);
     }
 
 
     @Override
-    public Page<EmployeeDto> getAllEmployeeByPage(int page, int size, String sortBy, String sortDir) {
+    public Page<EmployeeDto> getAllActiveEmployees(int page, int size, String sortBy, String sortDir) {
         Sort sort = (sortDir.equalsIgnoreCase("asc"))? Sort.by(sortBy).ascending():Sort.by(sortBy).descending();
+/*        List<Employee> employees = employeeRepository.findAllSorted(sortBy, sortDir);*/
         Pageable pageable = PageRequest.of(page, size, sort);
         Page<Employee> employeePage = employeeRepository.findAll(pageable);
         if(page >= employeePage.getTotalPages()){
             throw new PageNotFoundException("Page Not Found!");
+        }
+        int order = page * size + 1;  // Calculate initial order value based on page and size
+        for (Employee employee : employeePage.getContent()) {
+            employee.setSortOrder(order++);
+            employeeRepository.save(employee);  // Save the updated sortOrder back to the database
         }
         return employeePage.map(employeeMapper::employeeToEmployeeDto);
    }

@@ -7,14 +7,17 @@ import org.springframework.data.domain.Page;
 import java.util.List;
 
 public interface EmployeeService {
-    List<EmployeeDto> getAllEmployees();
+    List<EmployeeDto> findAllActiveEmployees();
     EmployeeDto createEmployee(EmployeeDto employeeDto);
     EmployeeDto getEmployeeById(Long employeeId);
     EmployeeDto updateEmployee(Long employeeId, EmployeeDto updateEmployee);
-    void deleteEmployee(Long employeeId);
-    Page<EmployeeDto> getAllEmployeeByPage(int page, int size, String sortBy, String sortDir) throws PageNotFoundException;
+    void deleteEmployeeBySoftDelete(Long employeeId);
+    void deleteEmployeeByHardDelete(Long employeeId);
+    Page<EmployeeDto> getAllActiveEmployees(int page, int size, String sortBy, String sortDir) throws PageNotFoundException;
 
     List<EmployeeDto> getAllEmployeeByDepartmentId(Long id);
 
     List<EmployeeDto> getAllEmployeeByProjectId(Long id);
+
+
 }

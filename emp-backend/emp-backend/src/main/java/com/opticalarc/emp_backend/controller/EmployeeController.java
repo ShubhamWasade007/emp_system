@@ -22,7 +22,7 @@ public class EmployeeController  {
     //Get All Employee
     @GetMapping
     public ResponseEntity<List<EmployeeDto>> getAllEmployee(){
-        List<EmployeeDto> employees = employeeService.getAllEmployees();
+        List<EmployeeDto> employees = employeeService.findAllActiveEmployees();
         return ResponseEntity.ok(employees);
     }
 
@@ -50,8 +50,14 @@ public class EmployeeController  {
     //delete employee
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse> deleteEmployee(@PathVariable("id") Long employeeId){
-       employeeService.deleteEmployee(employeeId);
+       employeeService.deleteEmployeeBySoftDelete(employeeId);
         return new  ResponseEntity<ApiResponse>(new ApiResponse("Employee Deleted Successfully!",true),HttpStatus.OK);
+    }
+
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<ApiResponse> deleteEmployees(@PathVariable("id") Long employeeId){
+        employeeService.deleteEmployeeByHardDelete(employeeId);
+        return new ResponseEntity<ApiResponse>(new ApiResponse("Employee Deleted permanently",true),HttpStatus.OK);
     }
 
     //getAllEmployeeByDeptid
@@ -72,11 +78,11 @@ public class EmployeeController  {
 
     //Get by Page
     @GetMapping("/page")
-    public ResponseEntity<Page<EmployeeDto>> getAllEmployeeByPage(@RequestParam(value = "pageNo",defaultValue = "0",required = false) int page,
+    public ResponseEntity<Page<EmployeeDto>> findAllActiveEmployees(@RequestParam(value = "pageNo",defaultValue = "0",required = false) int page,
                                                                   @RequestParam(value = "pageSize",defaultValue = "10",required = false)int size,
                                                                   @RequestParam(value = "sortBy", defaultValue = "id", required = false) String sortBy,
                                                                   @RequestParam(value = "sortDir", defaultValue = "asc", required = false) String sortDir){
-        Page<EmployeeDto> employeePage = employeeService.getAllEmployeeByPage(page, size, sortBy, sortDir);
+        Page<EmployeeDto> employeePage = employeeService.getAllActiveEmployees(page, size, sortBy, sortDir);
         return new ResponseEntity<>(employeePage, HttpStatus.OK);
     }
 }

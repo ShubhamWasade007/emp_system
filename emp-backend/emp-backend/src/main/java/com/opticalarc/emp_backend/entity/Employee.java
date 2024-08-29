@@ -1,8 +1,10 @@
 package com.opticalarc.emp_backend.entity;
-
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.Where;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -13,6 +15,8 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
+@SQLDelete(sql = "UPDATE employees SET is_Deleted = true WHERE id=?")
+@Where(clause = "is_Deleted = false")
 @Table(name = "employees")
 public class Employee {
 
@@ -29,7 +33,7 @@ public class Employee {
 
     private String mobileNo;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne
     @JoinColumn(name = "address_id", referencedColumnName = "id")
     private Address address;
 
@@ -37,7 +41,7 @@ public class Employee {
     @JoinColumn(name = "project_id",referencedColumnName = "id", nullable = false)
     private Project project;
 
-    @ManyToMany(cascade = CascadeType.ALL,fetch = FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "employee_skills",
             joinColumns = @JoinColumn(name = "employee_id"),
@@ -47,4 +51,10 @@ public class Employee {
 
     @ManyToOne(fetch = FetchType.LAZY)
     private Department department;
+
+    @Column(name = "is_Deleted", nullable = false)
+    private boolean isDeleted = Boolean.FALSE;
+
+    private Integer sortOrder;
 }
+

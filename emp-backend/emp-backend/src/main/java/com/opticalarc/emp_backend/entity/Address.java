@@ -26,6 +26,6 @@ public class Address{
 
     private String zipCode;
 
-    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "address")
+    @OneToOne(fetch = FetchType.LAZY,mappedBy = "address")
     private Employee employees;
 }
